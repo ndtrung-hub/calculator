@@ -11,6 +11,7 @@ const EQUAL = { name: "equals", value: "=" };
 const CLR = { name: "clear", value: "CLEAR" };
 
 const NUMS = [
+  "zero",
   "one",
   "two",
   "three",
@@ -20,7 +21,6 @@ const NUMS = [
   "seven",
   "eight",
   "nine",
-  "zero",
 ];
 const OPERATORS = [ADD, SUBTRACT, MULTIPLY, DIVIDE, EQUAL, CLR];
 
@@ -37,11 +37,8 @@ function App() {
         setOperator([]);
         break;
       case MULTIPLY.name:
-      case DIVIDE.name:
       case ADD.name:
-        if (opeArr.length >= 2) {
-          if(isNaN(preprocessNumber([opeArr[opeArr.length - 1]]))&&isNaN(preprocessNumber(number))) break;
-        }
+      case DIVIDE.name:
       case SUBTRACT.name:
         if (isNaN(preprocessNumber(number))) {
           setOperator((prev) => [...prev, event.target.innerText]);
@@ -54,36 +51,60 @@ function App() {
         }
         setNumber([]);
         break;
+
       case EQUAL.name:
+        let output = 0;
+        let arrayToProcess = [...opeArr];
         if (!isNaN(preprocessNumber(number))) {
-          setOperator((prev) => [
-            ...prev,
-            preprocessNumber(number),
-            event.target.innerText,
-          ]);
+          arrayToProcess.push(preprocessNumber(number));
+
+          for (let i = 0; i < arrayToProcess.length - 1; i++) {
+            if (isNaN(parseFloat(arrayToProcess[i]))&&isNaN(parseFloat(arrayToProcess[i+1]))) {
+              if (
+                !(
+                  arrayToProcess[i + 1] == SUBTRACT.value &&
+                  !isNaN(parseFloat(arrayToProcess[i + 2]))
+                )
+              ) {
+                arrayToProcess = arrayToProcess
+                  .slice(0, i)
+                  .concat(arrayToProcess.slice(i + 1));
+                i--;
+                console.log(arrayToProcess);
+              }
+            }
+          }
+
+          output = [eval(arrayToProcess.join(""))];
         }
-        let output = preprocessNumber([
-          eval([...opeArr, preprocessNumber(number)].join("")),
-        ]);
-        console.log(output);
-        setResult(output);
-        setNumber([]);
-        setOperator([output]);
+
+        if (isNaN(output)) {
+          setResult(0);
+          setNumber([]);
+          setOperator([]);
+        } else {
+          console.log(output);
+          setResult(output);
+          setNumber([]);
+          setOperator([output]);
+        }
         break;
       default:
         break;
     }
   }
 
-  //this function check number is a integer or a float
-  function preprocessNumber(number) {
+  //this function check an joined array of digit is a integer or a float
+  function preprocessNumber(num) {
     const regexInt = /^[0-9]$/g;
-    let temp = number.join("");
-    return regexInt.test(temp) ? parseInt(temp) : parseFloat(temp);
+    if (num.length >= 1) {
+      let temp = num.join("");
+      return regexInt.test(temp) ? parseInt(temp) : parseFloat(temp).toFixed(4);
+    } else return NaN;
   }
 
   function handleNumber(event) {
-    if (opeArr.length == 1) {
+    if (opeArr.length === 1) {
       if (!isNaN(preprocessNumber([opeArr[0]]))) {
         setResult(0);
         setOperator([]);
@@ -100,8 +121,8 @@ function App() {
       case "7":
       case "8":
       case "9":
-        if (event.target.textContent === "0" && number.length === 1) {
-          break;
+        if (number.length === 1) {
+          if (number[0] === "0") break;
         }
         setNumber((prev) => [...prev, event.target.textContent]);
         break;
