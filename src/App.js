@@ -171,7 +171,6 @@ function App() {
       </div>
       <div>
         <p id="display">{number.length !== 0 ? number : result}</p>
-        <p id="display">{opeArr}</p>
       </div>
     </div>
   );
